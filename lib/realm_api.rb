@@ -47,8 +47,6 @@ class SmartProxy < Sinatra::Base
         {
           :fqdn => client.fqdn,
           :output => client.output,
-          #:tsig_keytab => @client.tsig_keytab,
-          #:tsig_principal => @client.tsig_principal
         }.to_json
       else
         erb :"realm/show"
@@ -65,7 +63,10 @@ class SmartProxy < Sinatra::Base
     begin
       client = client_setup fqdn
       client.host_add
-      client.pwd.to_json
+      content_type :json
+      {
+        :pwd => client.pwd
+      }.to_json
     rescue Proxy::Realm::Error => e
       log_halt 409, e
     rescue Exception => e

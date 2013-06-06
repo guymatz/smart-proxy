@@ -27,9 +27,8 @@ module Proxy::Realm
     end
 
     def host_add
-      pwd = mk_pwd
-      ipa "host-add", "--password=#{pwd}"
-      pwd
+      @pwd = mk_pwd
+      ipa "host-add", "--password=#{@pwd}"
     end
 
     def host_del
