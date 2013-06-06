@@ -1,6 +1,4 @@
-#require 'proxy/kerberos'
-require 'rkerberos'
-require 'krb5_auth'
+require 'proxy/kerberos'
 
 module Proxy::Realm
   class Error < RuntimeError; end
@@ -8,6 +6,7 @@ module Proxy::Realm
 
   class Client
     include Proxy::Log
+    include Proxy::Kerberos
 
     def initialize options = {}
       @fqdn   = options[:fqdn]
