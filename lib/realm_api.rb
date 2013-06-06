@@ -15,7 +15,6 @@ class SmartProxy < Sinatra::Base
         end
         Proxy::Realm::IPA.new(
           :fqdn => fqdn,
-          #:fqdn => "utest.collmedia.net",
           :tsig_keytab => SETTINGS.realm_tsig_keytab,
           :tsig_principal => SETTINGS.realm_tsig_principal
         )
@@ -75,10 +74,10 @@ class SmartProxy < Sinatra::Base
   end
 
   # delete a host from a realm
-  delete "/realm/:value" do
-    fqdn = params[:value]
+  delete "/realm/:fqdn" do
+    fqdn = params[:fqdn]
     begin
-      client = client_setup({:fqdn => fqdn})
+      client = client_setup fqdn
       client.host_del
     rescue => e
       log_halt 400, e

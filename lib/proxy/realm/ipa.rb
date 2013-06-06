@@ -1,16 +1,20 @@
 module Proxy::Realm
   class IPA < Client
 
-    include Proxy::Kerberos
+#    include Proxy::Kerberos
     include Proxy::Util
 
     attr_accessor :tsig_keytab, :tsig_principal, :fqdn
     attr_reader :pwd, :output
 
     def initialize( options = {})
+      logger.debug "ipa: options to new IPA client #{options.to_s}"
       @fqdn = options[:fqdn]
       @tsig_keytab = options[:tsig_keytab]
       @tsig_principal = options[:tsig_principal]
+      logger.debug "ipa: @fqdn = #{@fqdn}"
+      logger.debug "ipa: @tsig_keytab = #{@tsig_keytab}"
+      logger.debug "ipa: @tsig_principal = #{@tsig_principal}"
       raise "Keytab not configured via ipa_tsig_keytab for IPA GSS-TSIG support" unless @tsig_keytab
       raise "Unable to read ipa_tsig_keytab file at #{@tsig_keytab}" unless File.exist?(@tsig_keytab)
       raise "Kerberos principal required - check ipa_tsig_principal setting" unless @tsig_principal
@@ -63,28 +67,28 @@ module Proxy::Realm
 
     private
 
-#    def init_krb5_ccache
-#        logger.info "Requesting IPA credentials for Kerberos principal #{tsig_principal} using keytab #{tsig_keytab}"
-#      begin
-#        ccache = Kerberos::Krb5::CredentialsCache.new
-#      rescue => e
-#        logger.error "IPA Failed to create new Kerberos::Krb5::CredentialsCache:  #{e}"
-#        raise Proxy::Realm::KerberosError.new("Unable to initialise Kerberos: #{e}")
-#      end  
-#      begin
-#        krb5 = Kerberos::Krb5.new
-#      rescue => e
-#        logger.error "IPA Failed to create new Kerberos::Krb5: #{e}"
-#        raise Proxy::Realm::KerberosError.new("Unable to initialise Kerberos: #{e}")
-#      end  
-#      begin
-#        krb5.get_init_creds_keytab tsig_principal, tsig_keytab, nil, ccache
-#      rescue => e
-#        logger.error "IPA Failed to initialise credential cache from keytab: #{e}"
-#        raise Proxy::Realm::KerberosError.new("Unable to initialise Kerberos: #{e}")
-#      end
-#      logger.debug "Kerberos credential cache initialised with principal: #{ccache.primary_principal}"
-#    end
+    def init_krb5_ccache
+        logger.info "Requesting IPA credentials for Kerberos principal #{tsig_principal} using keytab #{tsig_keytab}"
+      begin
+        ccache = Kerberos::Krb5::CredentialsCache.new
+      rescue => e
+        logger.error "IPA Failed to create new Kerberos::Krb5::CredentialsCache:  #{e}"
+        raise Proxy::Realm::KerberosError.new("IPA Failed to create new Kerberos::Krb5::CredentialsCache: #{e}")
+      end  
+      begin
+        krb5 = Kerberos::Krb5.new
+      rescue => e
+        logger.error "IPA Failed to create new Kerberos::Krb5: #{e}"
+        raise Proxy::Realm::KerberosError.new("IPA Failed to create new Kerberos::Krb5: #{e}")
+      end  
+      begin
+        krb5.get_init_creds_keytab @tsig_principal, @tsig_keytab, nil, ccache
+      rescue => e
+        logger.error "IPA Failed to initialise credential cache from keytab: #{krb5.to_s}"
+        raise Proxy::Realm::KerberosError.new("IPA Failed to initialise credential cache from keytab: #{e}")
+      end
+      logger.debug "Kerberos credential cache initialised with principal: #{ccache.primary_principal}"
+    end
 
 
     def find_ipa
